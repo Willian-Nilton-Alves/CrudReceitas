@@ -5,14 +5,15 @@ namespace app\models;
 use Yii;
 
 /**
- * This is the model class for table "Ingredient".
+ * This is the model class for table "ingredient".
  *
  * @property int $id
  * @property string $name
- * @property integer $quantity
+ * @property int $quantity
  */
-class ingredient extends \yii\db\ActiveRecord
+class Ingredient extends \yii\db\ActiveRecord
 {
+    public $availability;
     /**
      * {@inheritdoc}
      */
@@ -43,5 +44,12 @@ class ingredient extends \yii\db\ActiveRecord
             'name' => Yii::t('app', 'Name'),
             'quantity' => Yii::t('app', 'Quantity'),
         ];
+    }
+
+    public function isAvailable($quantity)
+    {
+        // Implemente a lógica para verificar a disponibilidade do ingrediente.
+        // Por exemplo, pode ser baseado em algum atributo no banco de dados.
+        return $this->availability >= $quantity; // Assumindo que 'availability' é um atributo que indica disponibilidade.
     }
 }

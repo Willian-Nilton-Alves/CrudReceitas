@@ -8,35 +8,92 @@ use Yii;
 use yii\web\Controller;
 use yii\web\HttpException;
 use app\models\Recipe;
-use app\models\RecipeSearch;
 use yii\web\NotFoundHttpException;
+use app\models\Ingredient;
+use yii\bootstrap\Alert;
+
 class RecipeController extends Controller
 {
 
-    public function actionUpdateIngredients($id)
-{
-    $recipe = Recipe::findOne($id);
+ 
 
-    if ($recipe === null) {
-        throw new NotFoundHttpException('Receita não encontrada.');
+    public function actionAddIngredient($id)
+    {
+        $recipe = Recipe::findOne($id);
+    
+        if ($recipe === null) {
+            throw new NotFoundHttpException('Receita não encontrada.');
+        }
+    
+        $model = new RecipeIngredient();
+        $model->recipe_id = $recipe->id;
+    
+        if ($model->load(Yii::$app->request->post())) {
+            // Verifica se o ingrediente já está associado a essa receita
+            $existingIngredient = RecipeIngredient::findOne(['recipe_id' => $recipe->id, 'ingredient_id' => $model->ingredient_id]);
+            if ($existingIngredient !== null) {
+                // Exibe um alerta indicando que o ingrediente já está associado à receita
+                Yii::$app->session->setFlash('danger', 'Esse ingrediente já está associado a essa receita.');
+                return $this->redirect(['view', 'id' => $id]);
+            } else {
+                // Adiciona o novo ingrediente à receita
+                if ($model->save()) {
+                    Yii::$app->session->setFlash('success', 'Ingrediente adicionado com sucesso.');
+                    return $this->redirect(['view', 'id' => $id]);
+                } else {
+                    Yii::$app->session->setFlash('error', 'Ocorreu um erro ao adicionar o ingrediente.');
+                }
+            }
+        }
+    
+        return $this->render('@app/views/recipe-ingredient/addIngredient', [
+            'model' => $model,
+            'recipe' => $recipe,
+        ]);
     }
 
-    $recipeIngredients = $recipe->recipeIngredients;
+    
 
-    // Crie uma nova instância de RecipeIngredient
-    $model = new RecipeIngredient();
 
-    // Lógica para editar ingredientes
-    // Aqui você pode implementar a funcionalidade para editar ingredientes
+    public function actionEditIngredient($id)
+    {
+        // Encontre o modelo da relação RecipeIngredient pelo ID
+        $model = RecipeIngredient::findOne($id);
+    
+        // Verifique se o modelo foi encontrado
+        if ($model === null) {
+            throw new NotFoundHttpException('O ingrediente não foi encontrado.');
+        }
+    
+        // Carregue o modelo do ingrediente associado
+        $ingredientModel = $model->ingredient;
+    
+        // Renderize a view de edição com o modelo de relação e o modelo do ingrediente
+        return $this->render('@app/views/recipe-ingredient/editIngredient', [
+            'model' => $model,
+            'ingredientModel' => $ingredientModel,
+        ]);
+    }
 
-    return $this->render('updateIngredients', [
-        'recipe' => $recipe,
-        'recipeIngredients' => $recipeIngredients,
-        'model' => $model,  // Passe o modelo para a view
-    ]);
+
+
+public function validateIngredientId()
+{
+    $ingredient = Ingredient::findOne($this->ingredient_id);
+
+    if (!$ingredient) {
+        $this->addError('ingredient_id', 'Ingrediente não válido.');
+    }
 }
 
-    
+public function beforeSave($insert)
+{
+    if (parent::beforeSave($insert)) {
+        $this->validateIngredientId();
+        return !$this->hasErrors();
+    }
+    return false;
+}
 
     public function getRecipe()
     {
@@ -50,34 +107,30 @@ class RecipeController extends Controller
 
 
     public function actionIndex()
-    {
-        $dataProvider = new ActiveDataProvider([
-            'query' => Recipe::find(),
-            'pagination' => [
-                'pageSize' => 10,
-            ],
-        ]);
+{
+    $dataProvider = new ActiveDataProvider([
+        'query' => Recipe::find(),
+    ]);
 
-        return $this->render('index', [
-            'dataProvider' => $dataProvider,
-        ]);
-    }
+    return $this->render('index', [
+        'dataProvider' => $dataProvider,
+    ]);
 
-    public function actionView($id)
-    {
-        $recipe = Recipe::findOne($id);
+    
+}
 
-        if ($recipe === null) {
-            throw new NotFoundHttpException('Receita não encontrada.');
-        }
+public function actionView($id)
+{
+    $recipe = $this->findModel($id);
+    $recipeIngredients = $recipe->recipeIngredients; // Obtém os ingredientes da receita
 
-        $recipeIngredients = $recipe->recipeIngredients;
+    return $this->render('view', [
+        'recipe' => $recipe,
+        'recipeIngredients' => $recipeIngredients,  // Passa os ingredientes para a view
+    ]);
+}
 
-        return $this->render('view', [
-            'recipe' => $recipe,
-            'recipeIngredients' => $recipeIngredients,
-        ]);
-    }
+
 
     public function actionCreate()
     {
@@ -93,18 +146,18 @@ class RecipeController extends Controller
     }
 
     public function actionUpdate($id)
-    {
-        $model = $this->findModel($id);
+{
+    $model = $this->findModel($id);
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
-        }
-
-        return $this->render('update', [
-            'model' => $model,
-        ]);
+    if ($model->load(Yii::$app->request->post()) && $model->save()) {
+        Yii::$app->session->setFlash('success', 'As alterações foram salvas com sucesso.');
+        return $this->redirect(['view', 'id' => $model->id]);
     }
 
+    return $this->render('update', [
+        'model' => $model,
+    ]);
+}
     public function actionDelete($id)
     {
         $recipe = Recipe::findOne($id);

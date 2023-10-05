@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use yii\web\Controller;
+use app\models\Recipe;
 
 class SiteController extends Controller
 {
@@ -22,6 +23,12 @@ class SiteController extends Controller
      */
     public function actionIndex()
     {
-        return $this->render('index');
+        // Obter receitas disponíveis
+        $availableRecipes = Recipe::getAvailableRecipes();
+    
+        // Renderizar a view com as receitas disponíveis
+        return $this->render('index', [
+            'availableRecipes' => $availableRecipes,
+        ]);
     }
 }

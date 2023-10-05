@@ -1,5 +1,4 @@
 <?php
-
 use yii\helpers\Html;
 use yii\grid\GridView;
 
@@ -12,7 +11,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
 <div class="recipe-index">
     <h1><?= Html::encode($this->title) ?></h1>
-    
+
     <p>
         <?= Html::a('Criar Receita', ['create'], ['class' => 'btn btn-success']) ?>
     </p>
@@ -23,9 +22,22 @@ $this->params['breadcrumbs'][] = $this->title;
             'id',
             'name',
             [
+                'attribute' => 'ingredientes',
+                'label' => 'Ingredientes',
+                'value' => function ($model) {
+                    $ingredientes = [];
+                    foreach ($model->recipeIngredients as $recipeIngredient) {
+                        $ingredientes[] = $recipeIngredient->ingredient->name . ' (' . $recipeIngredient->quantity . ')';
+                    }
+                    return implode(', ', $ingredientes);
+                },
+                'format' => 'raw',
+            ],
+            [
                 'class' => 'yii\grid\ActionColumn',
-                'template' => '{view} {update} {delete}',
+                'template' => '{view} {update} {delete} {add-ingredient}', // Adicionando botão customizado
                 'buttons' => [
+                    
                     'view' => function ($url, $model, $key) {
                         return Html::a('Visualizar', ['view', 'id' => $model->id], ['class' => 'btn btn-primary']);
                     },
@@ -41,6 +53,11 @@ $this->params['breadcrumbs'][] = $this->title;
                             ],
                         ]);
                     },
+                    'add-ingredient' => function ($url, $model, $key) {
+                        return Html::a('Adicionar Ingredientes', ['add-ingredient', 'id' => $model->id], ['class' => 'btn btn-success']);
+                    },
+                    
+                    
                 ],
             ],
         ],

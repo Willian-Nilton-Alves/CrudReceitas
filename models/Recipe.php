@@ -102,6 +102,37 @@ public static function getAvailableRecipes()
 }
 
 
+public static function getUnavailableRecipes()
+{
+    $unavailableRecipes = [];
+
+    // Obtém todas as receitas
+    $recipes = Recipe::find()->all();
+
+    foreach ($recipes as $recipe) {
+        $ingredients = $recipe->recipeIngredients;
+        $isAvailable = true;
+
+        foreach ($ingredients as $recipeIngredient) {
+            $ingredient = $recipeIngredient->ingredient;
+            $requiredQuantity = $recipeIngredient->quantity;
+
+            if ($ingredient->quantity < $requiredQuantity) {
+                // Ingrediente não disponível em estoque suficiente
+                $isAvailable = false;
+                break;
+            }
+        }
+
+        if (!$isAvailable) {
+            $unavailableRecipes[] = $recipe;
+        }
+    }
+
+    return $unavailableRecipes;
+}
+
+
 public function hasSufficientIngredients()
 {
     foreach ($this->recipeIngredients as $recipeIngredient) {

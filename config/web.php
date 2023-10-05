@@ -51,6 +51,7 @@ $config = [
                 'ingredient/<id:\d+>/update' => 'ingredient/update',
                 'ingredient/<id:\d+>/delete' => 'ingredient/delete',
                 'recipe/list-recipes-by-ingredients' => 'recipe/list-recipes-by-ingredients',
+                'recipe-ingredient/deleteIngredient' => 'recipe-ingredient/delete-ingredient',
             ],
         ],
         

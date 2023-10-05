@@ -10,7 +10,7 @@ use yii\web\HttpException;
 use app\models\Recipe;
 use yii\web\NotFoundHttpException;
 use app\models\Ingredient;
-use yii\bootstrap\Alert;
+use yii\helpers\ArrayHelper;
 
 class RecipeController extends Controller
 {
@@ -54,26 +54,45 @@ class RecipeController extends Controller
 
     
 
-
     public function actionEditIngredient($id)
     {
-        // Encontre o modelo da relação RecipeIngredient pelo ID
+        // Encontra o modelo de RecipeIngredient pelo ID
         $model = RecipeIngredient::findOne($id);
-    
-        // Verifique se o modelo foi encontrado
+        
+        // Verifica se o modelo foi encontrado
         if ($model === null) {
             throw new NotFoundHttpException('O ingrediente não foi encontrado.');
         }
-    
-        // Carregue o modelo do ingrediente associado
-        $ingredientModel = $model->ingredient;
-    
-        // Renderize a view de edição com o modelo de relação e o modelo do ingrediente
+        
+        // Obtém o recipe_id do modelo
+        $recipe_id = $model->recipe_id;
+        
+        // Verifica se a requisição é um POST e carrega os dados do formulário no modelo
+        if (Yii::$app->request->isPost) {
+            $postData = Yii::$app->request->post();
+            
+            if ($model->load($postData) && $model->validate()) {
+                // Atribui o recipe_id ao modelo antes de salvar
+                $model->recipe_id = $recipe_id;
+                
+                // Se a requisição é um POST e o modelo foi salvo com sucesso
+                if ($model->save()) {
+                    Yii::$app->session->setFlash('success', 'As alterações foram salvas com sucesso.');
+                    return $this->redirect(['view', 'id' => $recipe_id]);
+                } else {
+                    Yii::$app->session->setFlash('error', 'Ocorreu um erro ao salvar as alterações.');
+                }
+            } else {
+                Yii::$app->session->setFlash('error', 'Ocorreu um erro ao validar os dados.');
+            }
+        }
+        
+        // Se a requisição não for um POST ou o salvamento falhou, exibe o formulário de edição
         return $this->render('@app/views/recipe-ingredient/editIngredient', [
-            'model' => $model,
-            'ingredientModel' => $ingredientModel,
+            'model' => $model,  // Passa o modelo para a visão
         ]);
     }
+    
 
 
 
@@ -116,8 +135,40 @@ public function beforeSave($insert)
         'dataProvider' => $dataProvider,
     ]);
 
-    
+
 }
+
+public function actionDeleteIngredient($recipe_id, $ingredient_id)
+{
+    // Encontrar o modelo com base na combinação de recipe_id e ingredient_id
+    $model = RecipeIngredient::findOne(['recipe_id' => $recipe_id, 'ingredient_id' => $ingredient_id]);
+
+    // Verificar se o modelo foi encontrado
+    if (!$model) {
+        Yii::$app->session->setFlash('error', 'Ingrediente não encontrado.');
+        return $this->redirect(['index']);  // Redirecionar para a página adequada
+    }
+
+    // Verificar se é uma requisição POST para excluir o ingrediente
+    if (Yii::$app->request->isPost) {
+        $model->delete();  // Excluir o modelo
+        Yii::$app->session->setFlash('success', 'Ingrediente excluído com sucesso.');
+        return $this->redirect(['index']);  // Redirecionar para a página adequada
+    }
+
+    // Obter a lista de ingredientes para o dropdown
+    $ingredients = ArrayHelper::map(Ingredient::find()->all(), 'id', 'name');
+
+    return $this->render('deleteIngredient', [
+        'model' => $model,
+        'ingredients' => $ingredients,
+    ]);
+}
+
+
+
+
+
 
 public function actionView($id)
 {
@@ -129,6 +180,7 @@ public function actionView($id)
         'recipeIngredients' => $recipeIngredients,  // Passa os ingredientes para a view
     ]);
 }
+
 
 
 
@@ -145,6 +197,10 @@ public function actionView($id)
         ]);
     }
 
+
+
+
+    
     public function actionUpdate($id)
 {
     $model = $this->findModel($id);

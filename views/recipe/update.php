@@ -2,8 +2,6 @@
 
 use yii\helpers\Html;
 
-/* @var $this yii\web\View */
-/* @var $model app\models\Recipe */
 
 $this->title = 'Editar Receita: ' . $model->name;
 $this->params['breadcrumbs'][] = ['label' => 'Receitas', 'url' => ['index']];

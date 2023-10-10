@@ -55,6 +55,9 @@ class Recipe extends \yii\db\ActiveRecord
         }
         return false;
     }
+
+
+
 public function getIngredients()
 {
     return $this->hasMany(Ingredient::class, ['id' => 'ingredient_id'])
@@ -67,6 +70,8 @@ public function isAvailable()
     // Aqui, usaremos uma lógica de exemplo onde consideramos a receita disponível se tiver algum ingrediente associado.
     return count($this->recipeIngredients) > 0;
 }
+
+
 
 
 // Recipe.php
@@ -100,6 +105,8 @@ public static function getAvailableRecipes()
 
     return $availableRecipes;
 }
+
+
 
 
 public static function getUnavailableRecipes()

@@ -1,5 +1,4 @@
 <?php
-        /* @var $this yii\web\View */
         use yii\helpers\Url;
     ?>
     <h1>Atualizar Ingrediente</h1>

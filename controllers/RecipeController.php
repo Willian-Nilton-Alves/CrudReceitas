@@ -10,12 +10,12 @@ use yii\web\HttpException;
 use app\models\Recipe;
 use yii\web\NotFoundHttpException;
 use app\models\Ingredient;
-use yii\helpers\ArrayHelper;
 
 class RecipeController extends Controller
 {
 
  
+
 
     public function actionAddIngredient($id)
     {
@@ -54,7 +54,8 @@ class RecipeController extends Controller
 
     
 
-    public function actionEditIngredient($id)
+
+    public function actionEditIngredient($id)   
     {
         // Encontra o modelo de RecipeIngredient pelo ID
         $model = RecipeIngredient::findOne($id);
@@ -92,7 +93,33 @@ class RecipeController extends Controller
             'model' => $model,  // Passa o modelo para a visão
         ]);
     }
-    
+
+        public function actionDeleteIngredient($id) {
+            $recipeIngredients = RecipeIngredient::findOne($id);
+            $recipe = Recipe::findOne($id);
+            $idIngredients = RecipeIngredient::find()->where(['recipe_id' => $id])->all();
+            $ingredientReceita = [];
+
+            foreach ($idIngredients as $ingredient) {
+                $i = Ingredient::findOne($ingredient->ingredient_id);
+                array_push($ingredientReceita, $i->name);
+            }
+
+            if ($recipeIngredients->load(Yii::$app->request->post()) && $recipeIngredients->validate()) {
+                $recipeIngredients->delete();
+                return $this->redirect(['view', 'id' => $id]);
+
+            }
+
+            return $this->render('@app/views/recipe-ingredient/deleteIngredient', [
+                'recipeIngredients' => $recipeIngredients,
+                'recipe' => $recipe,
+                'ingredientReceita' => $ingredientReceita
+
+                
+            ]);
+        }
+
 
 
 
@@ -114,6 +141,10 @@ public function beforeSave($insert)
     return false;
 }
 
+
+
+
+
     public function getRecipe()
     {
         return $this->hasOne(Recipe::class, ['id' => 'recipe_id']);
@@ -123,6 +154,10 @@ public function beforeSave($insert)
     {
         return $this->hasOne(Ingredient::class, ['id' => 'ingredient_id']);
     }
+
+
+
+
 
 
     public function actionIndex()
@@ -138,32 +173,7 @@ public function beforeSave($insert)
 
 }
 
-public function actionDeleteIngredient($recipe_id, $ingredient_id)
-{
-    // Encontrar o modelo com base na combinação de recipe_id e ingredient_id
-    $model = RecipeIngredient::findOne(['recipe_id' => $recipe_id, 'ingredient_id' => $ingredient_id]);
 
-    // Verificar se o modelo foi encontrado
-    if (!$model) {
-        Yii::$app->session->setFlash('error', 'Ingrediente não encontrado.');
-        return $this->redirect(['index']);  // Redirecionar para a página adequada
-    }
-
-    // Verificar se é uma requisição POST para excluir o ingrediente
-    if (Yii::$app->request->isPost) {
-        $model->delete();  // Excluir o modelo
-        Yii::$app->session->setFlash('success', 'Ingrediente excluído com sucesso.');
-        return $this->redirect(['index']);  // Redirecionar para a página adequada
-    }
-
-    // Obter a lista de ingredientes para o dropdown
-    $ingredients = ArrayHelper::map(Ingredient::find()->all(), 'id', 'name');
-
-    return $this->render('deleteIngredient', [
-        'model' => $model,
-        'ingredients' => $ingredients,
-    ]);
-}
 
 
 
@@ -197,6 +207,7 @@ public function actionView($id)
         ]);
     }
 
+    
 
 
 
@@ -214,6 +225,11 @@ public function actionView($id)
         'model' => $model,
     ]);
 }
+
+
+
+
+
     public function actionDelete($id)
     {
         $recipe = Recipe::findOne($id);
@@ -227,6 +243,11 @@ public function actionView($id)
         return $this->redirect(['index']);
     }
 
+
+
+
+
+
     protected function findModel($id)
     {
         if (($model = Recipe::findOne($id)) !== null) {
@@ -236,4 +257,10 @@ public function actionView($id)
         throw new HttpException(404, 'Receita não encontrada.');
     }
 }
+
+
+    function actionDeleteIngredient($id) {
+        $model = RecipeIngredient::findOne($id);
+        $model->delete();
+    }
 

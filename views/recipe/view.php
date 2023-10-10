@@ -15,6 +15,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <p>
         <?= Html::a('Adicionar Ingrediente', ['add-ingredient', 'id' => $recipe->id], ['class' => 'btn btn-success']) ?>
         <?= Html::a('Editar Ingrediente', ['edit-ingredient', 'id' => $recipe->id], ['class' => 'btn btn-primary']) ?>
+        <?= Html::a('excluir Ingrediente', ['delete-ingredient', 'id' => $recipe->id], ['class' => 'btn btn-danger']) ?>
         
     </p>
     

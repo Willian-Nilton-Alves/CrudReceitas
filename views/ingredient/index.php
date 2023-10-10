@@ -1,6 +1,5 @@
 <?php
 use yii\helpers\Url;
-/* @var $this yii\web\View */
 ?>
 <h1 class="text text-center">Ingredientes</h1>
 <a href="<?= Url::to(['ingredient/create']);?>" class="btn btn-success">Novo Ingrediente</a>

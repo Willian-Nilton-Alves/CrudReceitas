@@ -1,8 +1,9 @@
 <?php
 
 namespace app\controllers;
-
+use yii;
 use app\models\Ingredient;
+use app\models\RecipeIngredient;
 use yii\web\Controller;
 use yii\web\HttpException;
 use yii\web\NotFoundHttpException;
@@ -112,23 +113,38 @@ class IngredientController extends Controller
 
 
 
-
     /**
      * Exclui um ingrediente.
      */
+
     public function actionDelete($id)
     {
         // Encontra o modelo do ingrediente com base no ID
         $model = Ingredient::findOne($id);
-
-        if(! $model)
-        {
+    
+        if (! $model) {
             // Se o modelo não for encontrado, lança uma exceção indicando que a página não foi encontrada
             throw new NotFoundHttpException("Página não encontrada");
         }
+        $recipes = RecipeIngredient::find()->where(['ingredient_id' => $model->id])->all();
+        if ($recipes != null) {
+            $model->quantity= 0;
+            $model->save();
+        } else {
+            $model->delete();
+        }
+        // Redireciona para a lista de ingredientes
+        return $this->redirect(['ingredient/index']);
+        // Zera a quantidade do modelo
+        
 
-        // Exclui o modelo do banco de dados
-        $model->delete();
+        
+        // Salva as alterações no banco de dados
+        if ($model->save()) {
+            Yii::$app->session->setFlash('success', 'Quantidade do ingrediente zerada com sucesso.');
+        } else {
+            Yii::$app->session->setFlash('error', 'Não foi possível zerar a quantidade do ingrediente.');
+        }
         
         // Redireciona para a lista de ingredientes
         return $this->redirect(['ingredient/index']);

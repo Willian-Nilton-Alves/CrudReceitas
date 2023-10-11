@@ -3,8 +3,6 @@
 use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 use yii\helpers\ArrayHelper;
-use app\models\RecipeIngredient; // Certifique-se de que o namespace está correto
-use app\models\Ingredient;
 
 
 ?>
